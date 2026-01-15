@@ -9,7 +9,6 @@ import {
   withDerived,
   sortTasks as sortDerived,
 } from '@/utils/logic';
-// Local storage removed per request; keep everything in memory
 import { generateSalesTasks } from '@/utils/seed';
 
 interface UseTasksState {
@@ -19,7 +18,7 @@ interface UseTasksState {
   derivedSorted: DerivedTask[];
   metrics: Metrics;
   lastDeleted: Task | null;
-  addTask: (task: Omit<Task, 'id'> & { id?: string }) => void;
+  addTask: (task: Omit<Task, 'id' | 'createdAt' | 'completedAt'>) => void;
   updateTask: (id: string, patch: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   undoDelete: () => void;
@@ -45,20 +44,24 @@ export function useTasks(): UseTasksState {
     const now = Date.now();
     return (Array.isArray(input) ? input : []).map((t, idx) => {
       const revenue = Number(t.revenue);
-        const timeTaken = Number(t.timeTaken);
-       return {
+      const timeTaken = Number(t.timeTaken);
+
+      return {
         id: t.id ?? crypto.randomUUID(),
-          title: t.title,
-          revenue: Number.isFinite(revenue) && revenue > 0 ? revenue : 0,
-          timeTaken: Number.isFinite(timeTaken) && timeTaken > 0 ? timeTaken : 1,
-          priority: t.priority ?? 'Low',
-          status: t.status ?? 'Todo',
-          notes: t.notes ?? '',
-          createdAt: t.createdAt ?? new Date(now - idx * 1000).toISOString(),
-          completedAt: t.status === 'Done' ? t.completedAt ?? new Date().toISOString() : undefined,
-    };
-  });
- }
+        title: t.title,
+        revenue: Number.isFinite(revenue) && revenue > 0 ? revenue : 0,
+        timeTaken: Number.isFinite(timeTaken) && timeTaken > 0 ? timeTaken : 1,
+        priority: t.priority ?? 'Low',
+        status: t.status ?? 'Todo',
+        notes: t.notes ?? '',
+        createdAt: t.createdAt ?? new Date(now - idx * 1000).toISOString(),
+        completedAt:
+          t.status === 'Done'
+            ? t.completedAt ?? new Date().toISOString()
+            : undefined,
+      };
+    });
+  }
 
   useEffect(() => {
     if (fetchedRef.current) return;
@@ -73,7 +76,8 @@ export function useTasks(): UseTasksState {
 
         const data = await res.json();
         const normalized = normalizeTasks(data);
-        const finalData = normalized.length > 0 ? normalized : generateSalesTasks(50);
+        const finalData =
+          normalized.length > 0 ? normalized : generateSalesTasks(50);
 
         if (isMounted) setTasks(finalData);
       } catch (e: any) {
@@ -84,7 +88,6 @@ export function useTasks(): UseTasksState {
     }
 
     load();
-
     return () => {
       isMounted = false;
     };
@@ -115,19 +118,23 @@ export function useTasks(): UseTasksState {
     };
   }, [tasks]);
 
-  const addTask = useCallback((task: Omit<Task, 'id'> & { id?: string }) => {
-    setTasks(prev => [
-      ...prev,
-      {
+  const addTask = useCallback(
+    (task: Omit<Task, 'id' | 'createdAt' | 'completedAt'>) => {
+      const now = new Date().toISOString();
+
+      const newTask: Task = {
         ...task,
-        id: task.id ?? crypto.randomUUID(),
+        id: crypto.randomUUID(),
         revenue: task.revenue > 0 ? task.revenue : 0,
         timeTaken: task.timeTaken > 0 ? task.timeTaken : 1,
-        createdAt: new Date().toISOString(),
-        completedAt: task.status === 'Done' ? new Date().toISOString() : undefined,
-      },
-    ]);
-  }, []);
+        createdAt: now,
+        completedAt: task.status === 'Done' ? now : undefined,
+      };
+
+      setTasks(prev => [...prev, newTask]);
+    },
+    []
+  );
 
   const updateTask = useCallback((id: string, patch: Partial<Task>) => {
     setTasks(prev =>
@@ -136,7 +143,10 @@ export function useTasks(): UseTasksState {
           ? {
               ...t,
               ...patch,
-              timeTaken: patch.timeTaken && patch.timeTaken > 0 ? patch.timeTaken : t.timeTaken,
+              timeTaken:
+                patch.timeTaken && patch.timeTaken > 0
+                  ? patch.timeTaken
+                  : t.timeTaken,
               completedAt:
                 t.status !== 'Done' && patch.status === 'Done'
                   ? new Date().toISOString()
@@ -174,4 +184,5 @@ export function useTasks(): UseTasksState {
     undoDelete,
   };
 }
+
 
