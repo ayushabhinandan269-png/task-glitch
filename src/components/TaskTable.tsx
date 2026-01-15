@@ -24,7 +24,7 @@ import TaskDetailsDialog from '@/components/TaskDetailsDialog';
 
 interface Props {
   tasks: DerivedTask[];
-  onAdd: (payload: Omit<Task, 'id'>) => void;
+  onAdd: (payload: Omit<Task, 'id' | 'createdAt' | 'completedAt'>) => void;
   onUpdate: (id: string, patch: Partial<Task>) => void;
   onDelete: (id: string) => void;
 }
@@ -46,12 +46,14 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
     setOpenForm(true);
   };
 
-  const handleSubmit = (value: Omit<Task, 'id'> & { id?: string }) => {
+  const handleSubmit = (
+    value: Omit<Task, 'id' | 'createdAt' | 'completedAt'> & { id?: string }
+  ) => {
     if (value.id) {
-      const { id, ...rest } = value as Task;
+      const { id, ...rest } = value;
       onUpdate(id, rest);
     } else {
-      onAdd(value as Omit<Task, 'id'>);
+      onAdd(value);
     }
   };
 
@@ -59,7 +61,9 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
     <Card>
       <CardContent>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={2}>
-          <Typography variant="h6" fontWeight={700}>Tasks</Typography>
+          <Typography variant="h6" fontWeight={700}>
+            Tasks
+          </Typography>
           <Button startIcon={<AddIcon />} variant="contained" onClick={handleAddClick}>
             Add Task
           </Button>
@@ -84,7 +88,7 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
                 <TableRow
                   key={t.id}
                   hover
-                  onClick={() => setDetails(t)}   // View dialog
+                  onClick={() => setDetails(t)}
                   sx={{ cursor: 'pointer' }}
                 >
                   <TableCell>
@@ -96,7 +100,7 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
                           color="text.secondary"
                           noWrap
                           title={t.notes}
-                          dangerouslySetInnerHTML={{ __html: t.notes as unknown as string }}
+                          dangerouslySetInnerHTML={{ __html: t.notes }}
                         />
                       )}
                     </Stack>
@@ -104,7 +108,9 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
 
                   <TableCell align="right">${t.revenue.toLocaleString()}</TableCell>
                   <TableCell align="right">{t.timeTaken}</TableCell>
-                  <TableCell align="right">{t.roi == null ? 'N/A' : t.roi.toFixed(1)}</TableCell>
+                  <TableCell align="right">
+                    {t.roi == null ? 'N/A' : t.roi.toFixed(1)}
+                  </TableCell>
                   <TableCell>{t.priority}</TableCell>
                   <TableCell>{t.status}</TableCell>
 
@@ -113,8 +119,8 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
                       <Tooltip title="Edit">
                         <IconButton
                           size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();      //  UPDATED: stop bubbling
+                          onClick={e => {
+                            e.stopPropagation();
                             handleEditClick(t);
                           }}
                         >
@@ -126,8 +132,8 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={(e) => {
-                            e.stopPropagation();      // UPDATED: stop bubbling
+                          onClick={e => {
+                            e.stopPropagation();
                             onDelete(t.id);
                           }}
                         >
@@ -170,6 +176,7 @@ export default function TaskTable({ tasks, onAdd, onUpdate, onDelete }: Props) {
     </Card>
   );
 }
+
 
 
 
