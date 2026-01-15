@@ -27,7 +27,13 @@ interface Props {
 const priorities: Priority[] = ['High', 'Medium', 'Low'];
 const statuses: Status[] = ['Todo', 'In Progress', 'Done'];
 
-export default function TaskForm({ open, onClose, onSubmit, existingTitles, initial }: Props) {
+export default function TaskForm({
+  open,
+  onClose,
+  onSubmit,
+  existingTitles,
+  initial,
+}: Props) {
   const [title, setTitle] = useState('');
   const [revenue, setRevenue] = useState<number | ''>('');
   const [timeTaken, setTimeTaken] = useState<number | ''>('');
@@ -60,7 +66,9 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
     if (!current) return false;
 
     const others = initial
-      ? existingTitles.filter(t => t.toLowerCase() !== initial.title.toLowerCase())
+      ? existingTitles.filter(
+          t => t.toLowerCase() !== initial.title.toLowerCase()
+        )
       : existingTitles;
 
     return others.map(t => t.toLowerCase()).includes(current);
@@ -69,8 +77,10 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
   const canSubmit =
     !!title.trim() &&
     !duplicateTitle &&
-    typeof revenue === 'number' && revenue >= 0 &&
-    typeof timeTaken === 'number' && timeTaken > 0 &&
+    typeof revenue === 'number' &&
+    revenue >= 0 &&
+    typeof timeTaken === 'number' &&
+    timeTaken > 0 &&
     !!priority &&
     !!status;
 
@@ -81,11 +91,15 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
         : 0;
 
     const safeTimeTaken =
-      typeof timeTaken === 'number' && Number.isFinite(timeTaken) && timeTaken > 0
+      typeof timeTaken === 'number' &&
+      Number.isFinite(timeTaken) &&
+      timeTaken > 0
         ? timeTaken
         : 1;
 
-    const payload: Omit<Task, 'id' | 'createdAt' | 'completedAt'> & { id?: string } = {
+    const payload: Omit<Task, 'id' | 'createdAt' | 'completedAt'> & {
+      id?: string;
+    } = {
       title: title.trim(),
       revenue: safeRevenue,
       timeTaken: safeTimeTaken,
@@ -102,6 +116,7 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{initial ? 'Edit Task' : 'Add Task'}</DialogTitle>
+
       <DialogContent>
         <Stack spacing={2} mt={1}>
           <TextField
@@ -120,7 +135,11 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
               type="number"
               value={revenue}
               onChange={e =>
-                setRevenue(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))
+                setRevenue(
+                  e.target.value === ''
+                    ? ''
+                    : Math.max(0, Number(e.target.value))
+                )
               }
               inputProps={{ min: 0, step: 1 }}
               required
@@ -132,7 +151,11 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
               type="number"
               value={timeTaken}
               onChange={e =>
-                setTimeTaken(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))
+                setTimeTaken(
+                  e.target.value === ''
+                    ? ''
+                    : Math.max(1, Number(e.target.value))
+                )
               }
               inputProps={{ min: 1, step: 1 }}
               required
@@ -150,7 +173,9 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
                 onChange={e => setPriority(e.target.value as Priority)}
               >
                 {priorities.map(p => (
-                  <MenuItem key={p} value={p}>{p}</MenuItem>
+                  <MenuItem key={p} value={p}>
+                    {p}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -164,7 +189,9 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
                 onChange={e => setStatus(e.target.value as Status)}
               >
                 {statuses.map(s => (
-                  <MenuItem key={s} value={s}>{s}</MenuItem>
+                  <MenuItem key={s} value={s}>
+                    {s}
+                  </MenuItem>
                 ))}
               </Select>
             </FormControl>
@@ -182,7 +209,11 @@ export default function TaskForm({ open, onClose, onSubmit, existingTitles, init
 
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={!canSubmit}>
+        <Button
+          onClick={handleSubmit}
+          variant="contained"
+          disabled={!canSubmit}
+        >
           {initial ? 'Save Changes' : 'Add Task'}
         </Button>
       </DialogActions>
